@@ -1,3 +1,5 @@
+require 'active_support'
+require 'active_support/core_ext'
 require 'diplomat'
 require "citizn/version"
 require "citizn/passport"
@@ -7,15 +9,19 @@ module Citizn
     attr_accessor :settings
     attr_accessor :env
 
-    def configure(env, settings = nil)
-      self.settings = JSON.parse(JSON.dump(settings), symbolize_names: true)[env]
+    def configure(env, settings = {})
+      # make sure keys are symbols
+      self.settings = (settings.blank?)? settings : settings.deep_symbolize_keys[env]
       self.env = env
-      unless settings.nil?
+
+      # initialize Diplomat
+      unless settings.blank?
         Diplomat.configure do |config|
           config.url = self.settings[:host]
           config.acl_token =  self.settings[:token]
         end
       end
+
     end
 
   end

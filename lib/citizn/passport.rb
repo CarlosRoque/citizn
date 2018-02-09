@@ -1,8 +1,8 @@
 module Citizn
   class Passport
 
-    def initialize(env = 'development')
-      @env = env
+    def initialize()
+      @env = Citizn.env
       @diplomat = ""
     end
 
