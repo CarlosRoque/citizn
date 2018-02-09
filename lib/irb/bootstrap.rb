@@ -13,8 +13,10 @@ require './test/test_helper'
 ################################
 puts "citizn"
 
-template = {test_suite: { app_name: "test suite"}}
+template = {test_suite: { citizn_gem: { your: "mom", is: "so", fat: "!"}}}
 
 passport = Citizn::Passport.new(template)
 
 identity = passport.get_identity
+
+puts identity.inspect

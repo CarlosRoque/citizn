@@ -31,7 +31,7 @@ module Citizn
         if value.class == Hash
           array.concat self.convert_hash_to_array_of_hashes("#{parent}/#{key}",value)
         else
-          array << {"#{parent}/#{key}" => value.to_s}
+          array << {:key => "#{parent}/#{key}", :value => value.to_s}
         end
       end
       return array

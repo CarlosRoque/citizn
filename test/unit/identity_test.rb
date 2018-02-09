@@ -32,13 +32,13 @@ class IdentityTest < Minitest::Test
   end
   def test_it_requests_identity
     @identity.get_identity
-    assert_requested :get, @host_kv[:test]
+    assert_requested :get, @host_kv[:test], times: 2
   end
   def test_it_handles_404
     stub_request(:any, @host_kv[:test])
     .to_return(status: 404, body: "{}", headers: {})
     @identity.get_identity
-    assert_requested :get, @host_kv[:test]
+    assert_requested :get, @host_kv[:test], times: 2
   end
   def test_it_will_register_missing_keys
     stub_request(:put, @host_kv[:test_put]).
@@ -50,7 +50,7 @@ class IdentityTest < Minitest::Test
     to_return(status: 200, body: "{}", headers: {})
 
     @identity.get_identity
-    assert_requested :get, @host_kv[:test]
+    assert_requested :get, @host_kv[:test], times: 2
     assert_requested :put, @host_kv[:test_put_app_name]
   end
 end

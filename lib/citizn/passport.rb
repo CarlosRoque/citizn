@@ -5,7 +5,7 @@ module Citizn
       @env = Citizn.env
       @template = template
       @identity = Citizn::Identity.new(@template)
-      @cached_identity = {}
+      @cached_identity = nil
     end
 
     def get_identity
