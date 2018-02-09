@@ -11,7 +11,7 @@ module Citizn
       raise "Citizn::Passport, there can only be one root key" if @template.keys.length > 1
       @identity = get(@template.keys[0], false)
       sync_identity(@template,@identity)
-      @identity = get(@template.keys[0], true)
+      @identity = get(@template.keys[0])
     end
 
     private
@@ -48,13 +48,13 @@ module Citizn
         end
       end
 
-      # find all keys that do not exist in the template
-      indentity.each do |item|
-        found = template_arr.find{|i| i[:key] == item[:key]}
-        unless found
-          plan[:delete][item[:key]] = item[:value]
-        end
-      end
+      # # find all keys that do not exist in the template
+      # indentity.each do |item|
+      #   found = template_arr.find{|i| i[:key] == item[:key]}
+      #   unless found
+      #     plan[:delete][item[:key]] = item[:value]
+      #   end
+      # end
 
       return plan
     end
