@@ -34,16 +34,23 @@ class IdentityTest < Minitest::Test
     @identity.get_identity
     assert_requested :get, @host_kv[:test]
   end
+  def test_it_handles_404
+    stub_request(:any, @host_kv[:test])
+    .to_return(status: 404, body: "{}", headers: {})
+    @identity.get_identity
+    assert_requested :get, @host_kv[:test]
+  end
   def test_it_will_register_missing_keys
     stub_request(:put, @host_kv[:test_put]).
     with(body: {"app_name"=>"test"} ).
     to_return(status: 200, body: "{}", headers: {})
 
-    stub_request(:put, "http://test.com/v1/kv/test/app_name").
+    stub_request(:put, @host_kv[:test_put_app_name]).
     with( body: {"test/app_name"=>"test"}).
     to_return(status: 200, body: "{}", headers: {})
 
     @identity.get_identity
     assert_requested :get, @host_kv[:test]
+    assert_requested :put, @host_kv[:test_put_app_name]
   end
 end

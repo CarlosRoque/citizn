@@ -9,13 +9,17 @@ module Citizn
     def get_identity()
       raise "Citizn::Passport requires a root key in the Identity template" if @template.keys[0].blank?
       raise "Citizn::Passport, there can only be one root key" if @template.keys.length > 1
-      @identity = get(@template.keys[0],true)
+      @identity = get(@template.keys[0], true, false)
       sync_identity(@template,@identity)
     end
 
     private
-    def get(key, recurse = false)
-      return Diplomat::Kv.get(key,{recurse: recurse})
+    def get(key, recurse = false, convert = false)
+      begin
+        return Diplomat::Kv.get(key,{recurse: recurse, convert_to_hash: convert})
+      rescue => e
+        return (convert)? {}: []
+      end
     end
     def create(key, value)
       Diplomat::Kv.put(key, value)
@@ -33,15 +37,16 @@ module Citizn
     end
 
     def get_update_plan(parent,template,identity)
-      template_arr = convert_template_to_array(parent,template)
+      template_arr = Citizn.convert_hash_to_array_of_hashes(parent,template)
       plan = {leave:{}, create:{}, delete:{}}
 
       template_arr.each do |item|
-        found = identity.find{|i| i.keys[0] == item.keys[0]}
+        item_arr = item.first
+        found = identity.find{|i| i.keys[0] == item_arr[0]}
         if found
-          plan[:leave][item.keys[0]] = found
+          plan[:leave][item_arr[0]] = found
         else
-          plan[:create][item.keys[0]] = item
+          plan[:create][item_arr[0]] = item_arr[1]
         end
       end
 
@@ -52,18 +57,6 @@ module Citizn
       #   end
       # end
       return plan
-    end
-
-    def convert_template_to_array(parent,hash)
-      array = []
-      hash.each do |key, value|
-        if value.class == Hash
-          array.concat convert_template_to_array("#{parent}/#{key}",value)
-        else
-          array << {"#{parent}/#{key}" => value.to_s}
-        end
-      end
-      return array
     end
 
   end
