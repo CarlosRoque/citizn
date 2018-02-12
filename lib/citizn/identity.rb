@@ -9,9 +9,15 @@ module Citizn
     def get_identity()
       raise "Citizn::Passport requires a root key in the Identity template" if @template.keys[0].blank?
       raise "Citizn::Passport, there can only be one root key" if @template.keys.length > 1
+      # get identity from consul with keys as paths
       @identity = get(@template.keys[0], false)
+
+      # create missing keys from template in consul
       sync_identity(@template,@identity)
-      @identity = get(@template.keys[0])
+
+      # return new updated identity as hash with symbolized keys
+      @identity = get(@template.keys[0], true).deep_symbolize_keys
+      return @identity
     end
 
     def update_identity_with(hash)
