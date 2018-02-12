@@ -25,11 +25,11 @@ module Citizn
 
     end
 
-    def convert_hash_to_array_of_hashes(parent,hash)
+    def convert_hash_to_paths(parent,hash)
       array = []
       hash.each do |key, value|
         if value.class == Hash
-          array.concat self.convert_hash_to_array_of_hashes("#{parent}/#{key}",value)
+          array.concat self.convert_hash_to_paths("#{parent}/#{key}",value)
         else
           array << {:key => "#{parent}/#{key}", :value => value.to_s}
         end

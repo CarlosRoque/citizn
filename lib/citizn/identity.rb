@@ -14,6 +14,14 @@ module Citizn
       @identity = get(@template.keys[0])
     end
 
+    def update_identity_with(hash)
+      paths_hash = Citizn.convert_hash_to_paths('', hash)
+      return false if paths_hash.length == 0
+      paths_hash.each do |item|
+        create(item[:key], item[:value])
+      end
+    end
+
     private
     def get(key, convert = false, recurse = true)
       begin
@@ -25,19 +33,24 @@ module Citizn
     def create(key, value)
       Diplomat::Kv.put(key, value)
     end
+    def delete(key)
+      Diplomat::Kv.delete(key)
+    end
 
     def sync_identity(template,identity)
-
       root = template.first
-      plan = get_update_plan(root[0],root[1],identity)
 
+      plan = get_update_plan(root[0],root[1],identity)
       plan[:create].each do |key, value|
         create(key,value)
+      end
+      plan[:delete].each do |key, value|
+        delete(key)
       end
     end
 
     def get_update_plan(parent,template,identity)
-      template_arr = Citizn.convert_hash_to_array_of_hashes(parent,template)
+      template_arr = Citizn.convert_hash_to_paths(parent,template)
       plan = {create:{}, delete:{}}
 
       # find all keys that do not exist in the identity
@@ -48,13 +61,13 @@ module Citizn
         end
       end
 
-      # # find all keys that do not exist in the template
-      # indentity.each do |item|
-      #   found = template_arr.find{|i| i[:key] == item[:key]}
-      #   unless found
-      #     plan[:delete][item[:key]] = item[:value]
-      #   end
-      # end
+      # find all keys that do not exist in the template
+      identity.each do |item|
+        found = template_arr.find{|i| i[:key] == item[:key]}
+        unless found
+          plan[:delete][item[:key]] = item[:value]
+        end
+      end
 
       return plan
     end

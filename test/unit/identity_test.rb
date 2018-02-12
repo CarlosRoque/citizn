@@ -7,19 +7,21 @@ class IdentityTest < Minitest::Test
   def setup
     @host = 'http://test.com'
     @host_kv = {
-      test: "#{@host}/v1/kv/test?recurse",
-      test_put: "#{@host}/v1/kv/test",
-      test_put_app_name: "#{@host}/v1/kv/test/app_name" }
+      test:               "#{@host}/v1/kv/test?recurse",
+      test_put:           "#{@host}/v1/kv/test",
+      test_put_app_name:  "#{@host}/v1/kv/test/app_name",
+      test_delete:        "#{@host}/v1/kv/test/app_name/your" }
     Diplomat.configure do |config|
       config.url = @host
     end
     @identity = Citizn::Identity.new({test: { app_name: :test}})
     WebMock.reset!
-    stub_request(:any, @host_kv[:test])
+    # WebMock.allow_net_connect!
+    stub_request(:get, @host_kv[:test])
     .to_return(status: 200, body: "{}", headers: {})
-    stub_request(:any, @host_kv[:test_put]).
+    stub_request(:put, @host_kv[:test_put]).
     to_return(status: 200, body: "{}", headers: {})
-    stub_request(:any, @host_kv[:test_put_app_name]).
+    stub_request(:put, @host_kv[:test_put_app_name]).
     to_return(status: 200, body: "{}", headers: {})
 
 
@@ -51,6 +53,25 @@ class IdentityTest < Minitest::Test
 
     @identity.get_identity
     assert_requested :get, @host_kv[:test], times: 2
+    assert_requested :put, @host_kv[:test_put_app_name]
+  end
+  def test_it_will_remove_unused_keys
+    stub_request(:get, @host_kv[:test])
+    .to_return(
+      status: 200,
+      body: '[{"Key":"test/app_name","Value":"dGVzdA=="},{"Key":"test/app_name/your","Value":"aW52YWxpZCBrZXk="}]',
+      headers: {} )
+
+    stub_request(:delete, @host_kv[:test_delete])
+
+    @identity.get_identity
+    assert_requested :get, @host_kv[:test], times: 2
+    assert_requested :delete, @host_kv[:test_delete]
+  end
+  def test_it_will_update_keys
+    identity = {"test": { "app_name": "new app name"}}
+
+    @identity.update_identity_with(identity)
     assert_requested :put, @host_kv[:test_put_app_name]
   end
 end

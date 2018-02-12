@@ -19,4 +19,4 @@ passport = Citizn::Passport.new(template)
 
 identity = passport.get_identity
 
-puts identity.inspect
+# puts identity.inspect
